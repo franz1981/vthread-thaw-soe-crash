@@ -1,0 +1,4 @@
+out/
+*.class
+hs_err*
+core*
