@@ -47,3 +47,16 @@ v  ~StubRoutines::forward_exception 0x00007f792f817f0b
 
 Other flags (Temurin 25.0.3, 2 runs per variant): still crashes with `-Xcomp` plus
 `-XX:TieredStopAtLevel=1`, `-XX:+UseSerialGC` or `-Xss256k`. No crash (program printed `DONE`) with `-Xcomp -XX:-TieredCompilation`, or without `-Xcomp`. No other flags tried.
+
+## aarch64: `SoeThawA64.java`
+
+On aarch64 `SoeThaw` may never get a yield through freeze: every freeze near the limit takes the slow path
+(an interpreted frame is recorded in `JavaThread::_cont_fastpath`) and throws `StackOverflowError`, so the
+resume path is never reached. `SoeThawA64` runs each attempt in its own method and does four shallow yields
+first, so the fast path is used. On x86_64 it crashes like `SoeThaw` (Temurin 27+35, 3/3).
+
+```
+javac SoeThawA64.java
+java -Xcomp -Djdk.virtualThreadScheduler.parallelism=1 SoeThawA64            # k = 0..5000
+java -Xcomp -Djdk.virtualThreadScheduler.parallelism=1 SoeThawA64 16 20 22   # only these k
+```
