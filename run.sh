@@ -2,7 +2,7 @@
 # Compile SoeThaw.java and run the yield and sleep variants N times with -Xcomp, plus one control run without -Xcomp.
 #   ./run.sh [JAVA_HOME]            (default: $JAVA_HOME, else java from PATH)
 # Env: RUNS (default 3), TIMEOUT (per JVM, default 300 s), EXTRA_FLAGS (extra JVM flags for the -Xcomp runs;
-#      -Xcomp is still added unless NO_XCOMP=1), PIN (optional CPU list for taskset, e.g. PIN=8-15; unset = no pinning).
+#      -Xcomp is still added unless NO_XCOMP=1).
 # A run is "crashed" if an hs_err file was written, "ok" if the program printed its DONE line, else "error"
 # (timeout, other exit, JVM did not start).
 # Output goes to out/<timestamp>-<pid>/ (never deleted).
@@ -17,8 +17,6 @@ runs=${RUNS:-3}
 tmo=${TIMEOUT:-300}
 extra=${EXTRA_FLAGS:-}
 xcomp=-Xcomp; [ "${NO_XCOMP:-0}" = 1 ] && xcomp=
-pre="nice -n 19"
-[ -n "${PIN:-}" ] && pre="$pre taskset -c $PIN"
 
 out=$here/out/$(date +%Y%m%d-%H%M%S)-$$
 mkdir -p "$out/classes"
@@ -33,7 +31,7 @@ run_set() { # name variant flags...
   local crashed=0 other=0 line="-"
   for i in $(seq "$runs"); do
     local log=$out/$name-$i.out.txt err=$out/$name-$i.hs_err.log
-    $pre timeout "$tmo" "$java" "$@" -Djdk.virtualThreadScheduler.parallelism=1 \
+    timeout "$tmo" "$java" "$@" -Djdk.virtualThreadScheduler.parallelism=1 \
         -XX:-CreateCoredumpOnCrash -XX:ErrorFile="$err" -cp "$out/classes" SoeThaw "$variant" > "$log" 2>&1
     local rc=$?
     if [ -f "$err" ]; then

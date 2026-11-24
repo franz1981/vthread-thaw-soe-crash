@@ -9,7 +9,7 @@ The cause has not been investigated.
 
 ```
 ./run.sh /path/to/jdk       # JAVA_HOME as the argument
-RUNS=5 PIN=8-15 ./run.sh /path/to/jdk
+RUNS=5 ./run.sh /path/to/jdk
 ```
 
 Runs `yield` and `sleep` `RUNS` times (default 3) with `-Xcomp -Djdk.virtualThreadScheduler.parallelism=1` (the value
